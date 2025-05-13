@@ -105,7 +105,7 @@ class Dataset:
         self.event_time: Optional[torch.FloatTensor] = None
         self.event_bool: Optional[torch.IntTensor] = None
 
-        # Covariate information 
+        # Covariate information
         self.covariate_names: Optional[list[str]] = data.covariate_names
         self.covariates: Optional[torch.IntTensor] = None
 
@@ -177,7 +177,7 @@ class Dataset:
         self.event_bool = torch.tensor(
             np.array([_.event_bool for _ in data]), dtype=torch.bool
         )
-    
+
     def _construct_covariates(self, data: Data):
         self.covariates = torch.tensor(
             np.array([_.covariates for _ in data]), dtype=torch.int
@@ -222,7 +222,7 @@ class Dataset:
         if self.event_time is not None and self.event_bool is not None:
             return self.event_time[idx_patient], self.event_bool[idx_patient]
         raise ValueError("Dataset has no event. Please verify your data.")
-    
+
     def get_covariates_patient(self, idx_patient: int) -> torch.IntTensor:
         """
         Get covariates for patient number ``idx_patient``
@@ -240,8 +240,6 @@ class Dataset:
         if self.covariates is not None:
             return self.covariates[idx_patient]
         raise ValueError("Dataset has no covariates. Please verify your data.")
-    
-
 
     def get_values_patient(self, i: int, *, adapt_for_model=None) -> torch.FloatTensor:
         """
@@ -288,7 +286,7 @@ class Dataset:
 
         return values_with_nans
 
-    def to_pandas(self, apply_headers: bool=False) -> pd.DataFrame:
+    def to_pandas(self, apply_headers: bool = False) -> pd.DataFrame:
         """
         Convert dataset to a `DataFrame` with ['ID', 'TIME'] index, with all covariates, events and repeated measures if
         apply_headers is False, and only the repeated measures otherwise.
@@ -324,7 +322,10 @@ class Dataset:
 
             to_concat.append(
                 ind_pat.to_frame(
-                    self.headers, self.event_time_name, self.event_bool_name, self.covariate_names
+                    self.headers,
+                    self.event_time_name,
+                    self.event_bool_name,
+                    self.covariate_names,
                 )
             )
         df = pd.concat(to_concat).sort_index()

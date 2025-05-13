@@ -165,7 +165,11 @@ class Data(Iterable):
 
             individuals = [self.individuals[i] for i in individual_indices]
             return Data.from_individuals(
-                individuals, self.headers, self.event_time_name, self.event_bool_name, self.covariate_names
+                individuals,
+                self.headers,
+                self.event_time_name,
+                self.event_bool_name,
+                self.covariate_names,
             )
 
         raise LeaspyTypeError("Cannot access a Data object this way")
@@ -370,7 +374,10 @@ class Data(Iterable):
         df = pd.concat(
             [
                 individual_data.to_frame(
-                    self.headers, self.event_time_name, self.event_bool_name, self.covariate_names
+                    self.headers,
+                    self.event_time_name,
+                    self.event_bool_name,
+                    self.covariate_names,
                 )
                 for individual_data in self.individuals.values()
             ]
@@ -539,12 +546,14 @@ class Data(Iterable):
                 indiv.add_observations(timepoints[i], values[i])
             if event_time_name:
                 indiv.add_event(event_time[i], event_bool[i])
+            if covariate_names:
+                indiv.add_covariates(covariates[i])
             individuals.append(indiv)
 
         return Data.from_individuals(
             individuals, headers, event_time_name, event_bool_name
         )
-    
+
         # Covariate input checks
 
     @staticmethod
@@ -553,6 +562,7 @@ class Data(Iterable):
         headers: Optional[list[FeatureType]] = None,
         event_time_name: Optional[str] = None,
         event_bool_name: Optional[str] = None,
+        covariate_names: Optional[List[str]] = None,
     ) -> Data:
         """
         Construct `Data` from a list of individuals
@@ -579,6 +589,9 @@ class Data(Iterable):
         if event_time_name and event_bool_name:
             data.event_time_name = event_time_name
             data.event_bool_name = event_bool_name
+
+        if covariate_names:
+            data.covariate_names = covariate_names
 
         for indiv in individuals:
             idx = indiv.idx
