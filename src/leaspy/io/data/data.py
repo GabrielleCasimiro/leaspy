@@ -59,7 +59,8 @@ class Data(Iterable):
         self.event_time_name: Optional[str] = None
         self.event_bool_name: Optional[str] = None
 
-        # Cofactor information (?)
+        # Covariate information
+        self.covariate_names: Optional[List[str]] = None
 
     @property
     def dimension(self) -> Optional[int]:
@@ -164,7 +165,7 @@ class Data(Iterable):
 
             individuals = [self.individuals[i] for i in individual_indices]
             return Data.from_individuals(
-                individuals, self.headers, self.event_time_name, self.event_bool_name
+                individuals, self.headers, self.event_time_name, self.event_bool_name, self.covariate_names
             )
 
         raise LeaspyTypeError("Cannot access a Data object this way")
@@ -369,7 +370,7 @@ class Data(Iterable):
         df = pd.concat(
             [
                 individual_data.to_frame(
-                    self.headers, self.event_time_name, self.event_bool_name
+                    self.headers, self.event_time_name, self.event_bool_name, self.covariate_names
                 )
                 for individual_data in self.individuals.values()
             ]
@@ -475,6 +476,8 @@ class Data(Iterable):
         if hasattr(reader, "event_time_name"):
             data.event_time_name = reader.event_time_name
             data.event_bool_name = reader.event_bool_name
+        if hasattr(reader, "covariate_names"):
+            data.covariate_names = reader.covariate_names
         return data
 
     @staticmethod
@@ -541,6 +544,8 @@ class Data(Iterable):
         return Data.from_individuals(
             individuals, headers, event_time_name, event_bool_name
         )
+    
+        # Covariate input checks
 
     @staticmethod
     def from_individuals(

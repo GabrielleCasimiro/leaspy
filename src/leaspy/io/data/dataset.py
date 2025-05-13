@@ -105,7 +105,9 @@ class Dataset:
         self.event_time: Optional[torch.FloatTensor] = None
         self.event_bool: Optional[torch.IntTensor] = None
 
-        # Cofactor information (?)
+        # Covariate information 
+        self.covariate_names: Optional[list[str]] = data.covariate_names
+        self.covariates: Optional[torch.IntTensor] = None
 
         # internally used by ordinal models only (cache)
         self._one_hot_encoding: Optional[dict[bool, torch.LongTensor]] = None
@@ -120,6 +122,9 @@ class Dataset:
 
         if self.event_time_name:
             self._construct_events(data)
+
+        if self.covariate_names:
+            self._construct_covariates(data)
 
         self.no_warning = no_warning
 
@@ -172,6 +177,11 @@ class Dataset:
         self.event_bool = torch.tensor(
             np.array([_.event_bool for _ in data]), dtype=torch.bool
         )
+    
+    def _construct_covariates(self, data: Data):
+        self.covariates = torch.tensor(
+            np.array([_.covariates for _ in data]), dtype=torch.int
+        )
 
     def _compute_L2_norm(self):
         self.L2_norm_per_ft = torch.sum(
@@ -212,6 +222,26 @@ class Dataset:
         if self.event_time is not None and self.event_bool is not None:
             return self.event_time[idx_patient], self.event_bool[idx_patient]
         raise ValueError("Dataset has no event. Please verify your data.")
+    
+    def get_covariates_patient(self, idx_patient: int) -> torch.IntTensor:
+        """
+        Get covariates for patient number ``idx_patient``
+
+        Parameters
+        ----------
+        idx_patient : int
+            The index of the patient (<!> not its identifier)
+
+        Returns
+        -------
+        :class:`torch.Tensor`, shape (n_obs_of_patient,)
+            Contains float
+        """
+        if self.covariates is not None:
+            return self.covariates[idx_patient]
+        raise ValueError("Dataset has no covariates. Please verify your data.")
+    
+
 
     def get_values_patient(self, i: int, *, adapt_for_model=None) -> torch.FloatTensor:
         """
@@ -283,6 +313,10 @@ class Dataset:
                     pat_event_time.cpu().tolist(), pat_event_bool.cpu().tolist()
                 )
 
+            if self.covariates is not None:
+                pat_covariates = self.get_covariates_patient(i)
+                ind_pat.add_covariates(pat_covariates.cpu().tolist())
+
             if self.values is not None:
                 times = self.get_times_patient(i).cpu().numpy()
                 x = self.get_values_patient(i).cpu().numpy()
@@ -290,7 +324,7 @@ class Dataset:
 
             to_concat.append(
                 ind_pat.to_frame(
-                    self.headers, self.event_time_name, self.event_bool_name
+                    self.headers, self.event_time_name, self.event_bool_name, self.covariate_names
                 )
             )
         df = pd.concat(to_concat).sort_index()
