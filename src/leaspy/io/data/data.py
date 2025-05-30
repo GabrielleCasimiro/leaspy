@@ -539,6 +539,14 @@ class Data(Iterable):
             if not event_bool_name or not event_time or not event_bool:
                 raise ("Not coherent inputs for longitudinal data")
 
+        # Covariates input checks
+        if not covariate_names:
+            if covariates:
+                raise ("Not coherent inputs for covariate data")
+        else:
+            if not covariates:
+                raise ("Not coherent inputs for covariate data")
+
         individuals = []
         for i, idx in enumerate(indices):
             indiv = IndividualData(idx)
