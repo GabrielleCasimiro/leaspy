@@ -60,7 +60,7 @@ class Data(Iterable):
         self.event_bool_name: Optional[str] = None
 
         # Covariate information
-        self.covariate_names: Optional[List[str]] = None
+        self.covariate_names: Optional[list[str]] = None
 
     @property
     def dimension(self) -> Optional[int]:
@@ -392,8 +392,8 @@ class Data(Iterable):
         return df
 
     def _validate_cofactors_input(
-        self, cofactors: Optional[Union[list[FeatureType], str]] = None
-    ) -> list[FeatureType]:
+        self, cofactors: Optional[Union[List[FeatureType], str]] = None
+    ) -> List[FeatureType]:
         """
         Validate the cofactors input for the to_dataframe method.
 
@@ -497,6 +497,8 @@ class Data(Iterable):
         event_bool_name: Optional[str] = None,
         event_time: Optional[list[list[float]]] = None,
         event_bool: Optional[list[list[int]]] = None,
+        covariate_names: Optional[list[str]] = None,
+        covariates: Optional[list[list[int]]] = None,
     ) -> Data:
         """
         Construct `Data` from a collection of individual data points
@@ -562,15 +564,13 @@ class Data(Iterable):
             individuals, headers, event_time_name, event_bool_name
         )
 
-        # Covariate input checks
-
     @staticmethod
     def from_individuals(
         individuals: list[IndividualData],
         headers: Optional[list[FeatureType]] = None,
         event_time_name: Optional[str] = None,
         event_bool_name: Optional[str] = None,
-        covariate_names: Optional[List[str]] = None,
+        covariate_names: Optional[list[str]] = None,
     ) -> Data:
         """
         Construct `Data` from a list of individuals
