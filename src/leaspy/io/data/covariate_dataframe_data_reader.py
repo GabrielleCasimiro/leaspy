@@ -38,10 +38,6 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
         self.covariate_names = covariate_names
         self.visit_reader = VisitDataframeDataReader()
 
-    ######################################################
-    #               COVARIATE METHODS
-    ######################################################
-
     @property
     def long_outcome_names(self) -> List[FeatureType]:
         """Name of the longitudinal outcomes in dataset"""
@@ -53,7 +49,7 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
         return self.visit_reader.n_visits
 
     ######################################################
-    #               ABSTRACT METHODS IMPLEMENTED
+    #               COVARIATE METHODS
     ######################################################
 
     def _check_headers(self, columns: List[str]) -> None:
@@ -96,7 +92,7 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
             Dataframe with patient information
 
         drop_full_nan: bool
-            If set to True, raw full of nan are droped
+            If set to True, raw full of nan are dropped
 
         warn_empty_column: bool
             If set to True, a warning is raise for columns full of nan
@@ -170,7 +166,7 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
             Dataframe with patient information
 
         drop_full_nan: bool
-            If set to True, raw full of nan are droped
+            If set to True, raw full of nan are dropped
 
         warn_empty_column: bool
             If set to True, a warning is raise for columns full of nan
