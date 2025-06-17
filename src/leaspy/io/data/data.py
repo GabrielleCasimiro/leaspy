@@ -3,7 +3,6 @@ from __future__ import annotations
 import warnings
 from collections.abc import Iterable, Iterator
 from typing import Optional, Union
-from typing import Optional, Union
 
 import pandas as pd
 
@@ -543,12 +542,12 @@ class Data(Iterable):
                 raise ("Not coherent inputs for longitudinal data")
 
         # Covariates input checks
-        if not covariate_names:
-            if covariates:
-                raise ("Not coherent inputs for covariate data")
-        else:
-            if not covariates:
-                raise ("Not coherent inputs for covariate data")
+        if (covariate_names is None) != (covariates is None):
+            raise ValueError(
+                "Not coherent inputs for covariate data: \n "
+                f"covariate_names = {covariate_names} and \n "
+                f"covariates = {covariates}."
+            )
 
         individuals = []
         for i, idx in enumerate(indices):

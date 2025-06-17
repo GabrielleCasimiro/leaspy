@@ -1,10 +1,11 @@
 import warnings
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 
 from leaspy.exceptions import LeaspyDataInputError
-from leaspy.utils.typing import Dict, FeatureType, IDType, List, Optional
+from leaspy.utils.typing import FeatureType
 
 from .abstract_dataframe_data_reader import AbstractDataframeDataReader
 from .individual_data import IndividualData
@@ -30,7 +31,7 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
     def __init__(
         self,
         *,
-        covariate_names: List[str],
+        covariate_names: list[str],
     ):
         super().__init__()
         if not covariate_names:
@@ -39,7 +40,7 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
         self.visit_reader = VisitDataframeDataReader()
 
     @property
-    def long_outcome_names(self) -> List[FeatureType]:
+    def long_outcome_names(self) -> list[FeatureType]:
         """Name of the longitudinal outcomes in dataset"""
         return self.visit_reader.long_outcome_names
 
@@ -52,7 +53,7 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
     #               COVARIATE METHODS
     ######################################################
 
-    def _check_headers(self, columns: List[str]) -> None:
+    def _check_headers(self, columns: list[str]) -> None:
         """
         Check mendatory dataframe headers
 
@@ -104,13 +105,14 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
             Dataframe with clean information
         """
 
-        # [SPECIFIC] check_available_data
         df_covariate = df.copy(deep=True)
 
-        # Assert covariates columns are the only one available
-        assert (df_covariate.columns == self.covariate_names).all()
+        if not (df_covariate.columns == self.covariate_names).all():
+            raise LeaspyDataInputError(
+                f"The covariate column names {df_covariate.columns} are "
+                f"different from the provided covariate names {self.covariate_names}."
+            )
 
-        # Check if there are missing values (NaN) in the covariate
         for covariate in self.covariate_names:
             if df_covariate[covariate].isna().any():
                 raise LeaspyDataInputError(
@@ -118,7 +120,6 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
                     "Please ensure that values are provided for each visit."
                 )
 
-        # Check covariate good format
         for covariate in self.covariate_names:
             if not np.array_equal(
                 df_covariate[covariate], df_covariate[covariate].astype(int)
@@ -139,14 +140,12 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
             )
         df_covariate = df_covariate.groupby("ID").first()
 
-        # Covariate must be empty to raise an error
         if len(df_covariate) == 0:
             raise LeaspyDataInputError("Dataframe should have at least 1 covariate")
 
         # Assert at least 2 different values per covariate
         for covariate in self.covariate_names:
-            n_value = df_covariate[covariate].nunique(dropna=False)
-            if n_value < 2:
+            if (n_value := df_covariate[covariate].nunique(dropna=False)) < 2:
                 raise LeaspyDataInputError(
                     f"The covariate '{covariate}' has only {n_value} unique value."
                     "Each covariate must have at least two distinct values across patients"
@@ -178,14 +177,12 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
             Dataframe with clean information
         """
 
-        # Check visits
         df_visit = self.visit_reader._clean_dataframe(
             df.drop(columns=self.covariate_names),
             drop_full_nan=drop_full_nan,
             warn_empty_column=warn_empty_column,
         )
 
-        # Check covariates
         df_covariate = self._clean_dataframe_covariates(
             df.reset_index()
             .drop(self.long_outcome_names + ["TIME"], axis=1)
@@ -194,7 +191,6 @@ class CovariateDataframeDataReader(AbstractDataframeDataReader):
             warn_empty_column=warn_empty_column,
         )
 
-        # [SPECIFIC] prepare_clean_output
         if (
             not df_covariate.groupby("ID")
             .first()

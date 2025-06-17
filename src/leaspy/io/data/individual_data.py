@@ -100,7 +100,7 @@ class IndividualData:
 
         Parameters
         ----------
-        covaraites : array-like[float, 2D]
+        covariates : array-like[float, 2D]
             Covariates to include
         """
         self.covariates = np.array(covariates)
